@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import re
+from datetime import datetime
 from database import add_member, update_member, update_status, get_all_members, search_members, get_payment_history, get_upcoming_renewals, export_data
 
 # Initialize session state for page navigation if not already set
@@ -33,47 +35,85 @@ def go_to_upcoming_renewals():
 def go_to_download_reports():
     st.session_state.page = "download_reports"
 
+def validate_email(email):
+    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(pattern, email)
+
+def validate_mobile(number):
+    return number.isdigit() and len(number) == 10
+
 def register_btn(name, number, email, membership_type, start_date, end_date):
-    if name and number and email and membership_type and start_date and end_date:
-        mem_info = {
-            "name": name,
-            "mobile": number,
-            "email": email,
-            "mem_type": membership_type,
-            "start_date": start_date,
-            "end_date": end_date
-        }
-        add_member(mem_info)
-        st.success("Registration Successful!")
-        st.session_state.page = "home"
-    else:
+    if not (name and number and email and membership_type and start_date and end_date):
         st.error("All fields are required!")
+        return
+
+    if not validate_mobile(number):
+        st.error("Invalid mobile number! It should contain only digits and be 10 digits long.")
+        return
+
+    if not validate_email(email):
+        st.error("Invalid email format!")
+        return
+
+    if end_date <= start_date:
+        st.error("End date must be after start date!")
+        return
+
+    mem_info = {
+        "name": name,
+        "mobile": number,
+        "email": email,
+        "mem_type": membership_type,
+        "start_date": start_date,
+        "end_date": end_date
+    }
+    add_member(mem_info)
+    st.success("Registration Successful!")
+    st.session_state.page = "home"
 
 def update_details_btn(id, number, email, membership_type):
-    if id and number and email and membership_type:
-        update_info = {
-            "id": id,
-            "mobile": number,
-            "email": email,
-            "mem_type": membership_type
-        }
-        update_member(update_info)
-        st.success("Details updated successfully!")
-        st.session_state.page = "home"
-    else:
+    if not (id and number and email and membership_type):
         st.error("All fields are required!")
+        return
+
+    if not id.isdigit():
+        st.error("Invalid ID! It should be a number.")
+        return
+
+    if not validate_mobile(number):
+        st.error("Invalid mobile number! It should contain only digits and be 10 digits long.")
+        return
+
+    if not validate_email(email):
+        st.error("Invalid email format!")
+        return
+
+    update_info = {
+        "id": id,
+        "mobile": number,
+        "email": email,
+        "mem_type": membership_type
+    }
+    update_member(update_info)
+    st.success("Details updated successfully!")
+    st.session_state.page = "home"
 
 def act_deact_btn(id, act_deact):
-    if id and act_deact:
-        update_status_info = {
-            "id": id,
-            "act_deact": act_deact 
-        }
-        update_status(update_status_info)
-        st.success("Membership status updated successfully!")
-        st.session_state.page = 'home'
-    else:
+    if not (id and act_deact):
         st.error("All fields are required!")
+        return
+
+    if not id.isdigit():
+        st.error("Invalid ID! It should be a number.")
+        return
+
+    update_status_info = {
+        "id": id,
+        "act_deact": act_deact 
+    }
+    update_status(update_status_info)
+    st.success("Membership status updated successfully!")
+    st.session_state.page = 'home'
 
 def show_page(page):
     if page == "home":
