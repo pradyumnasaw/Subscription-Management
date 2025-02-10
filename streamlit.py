@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import re
-from datetime import datetime
 from database import add_member, update_member, update_status, get_all_members, search_members, get_payment_history, get_upcoming_renewals, export_data
 
 # Initialize session state for page navigation if not already set
@@ -36,7 +35,7 @@ def go_to_download_reports():
     st.session_state.page = "download_reports"
 
 def validate_email(email):
-    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email)
 
 def validate_mobile(number):
